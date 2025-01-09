@@ -5,20 +5,34 @@ from db import verificar_usuario, registrar_usuario, agregar_evento, obtener_eve
 import datetime
 
 class AgendaApp:
-    def __init__(self):
-        self.root = tk.Tk()
-        self.root.title("Agenda Escolar")
-        self.root.geometry("1500x700")  # Hacemos la ventana más grande
-        self.root.configure(bg="#F0F8FF")
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Agenda App")
         
-        # Establecer el ícono de la aplicación
-        try:
-            self.root.iconbitmap("icono.ico") # Cambia "icono.ico" por la ruta de tu archivo de ícono
-        except Exception as e:
-            print(f"No se pudo cargar el ícono: {e}")
+        # Crear el frame para el inicio de sesión
+        login_frame = tk.Frame(self.root, bg="#f0f0f0")
+        login_frame.pack(expand=True, fill="both")
         
-        self.mostrar_login()
-        self.root.mainloop()
+        # Cargar y mostrar el logotipo
+        self.logo = PhotoImage(file="logo.png")
+        tk.Label(login_frame, image=self.logo, bg="#f0f0f0").pack(pady=20)
+        
+        # Etiqueta y campo de entrada para el nombre de usuario
+        tk.Label(login_frame, text="Usuario:", font=("Arial", 12), bg="#f0f0f0").pack(pady=5)
+        self.entrada_usuario = tk.Entry(login_frame, font=("Arial", 12))
+        self.entrada_usuario.pack(pady=5)
+        
+        # Etiqueta y campo de entrada para la contraseña
+        tk.Label(login_frame, text="Contraseña:", font=("Arial", 12), bg="#f0f0f0").pack(pady=5)
+        self.entrada_contrasena = tk.Entry(login_frame, font=("Arial", 12), show="*")
+        self.entrada_contrasena.pack(pady=5)
+        
+        # Botón de inicio de sesión
+        tk.Button(login_frame, text="Iniciar Sesión", command=self.mostrar_horario, font=("Arial", 12), bg="#4a90e2", fg="white").pack(pady=20)
+    
+    def mostrar_horario(self):
+        # Aquí puedes agregar la lógica para mostrar el horario después de iniciar sesión
+        pass
 
     # --- Ventanas de la Aplicación ---
 
@@ -413,4 +427,6 @@ class AgendaApp:
 
 # Ejecutar la aplicación
 if __name__ == "__main__":
-    AgendaApp()
+    root = tk.Tk()
+    app = AgendaApp(root)
+    root.mainloop()
