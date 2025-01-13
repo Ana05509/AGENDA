@@ -1,146 +1,79 @@
 import tkinter as tk
-from tkinter import PhotoImage
 from tkinter import ttk, messagebox
 from db import verificar_usuario, registrar_usuario, agregar_evento, obtener_eventos, guardar_materias, obtener_materias, guardar_deber, obtener_deberes
 import datetime
 
 class AgendaApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Agenda App")
-        
-        # Crear el frame para el inicio de sesión
-        login_frame = tk.Frame(self.root, bg="#f0f0f0")
-        login_frame.pack(expand=True, fill="both")
-        
-        # Cargar y mostrar el logotipo
-        self.logo = PhotoImage(file="logo.png")
-        tk.Label(login_frame, image=self.logo, bg="#f0f0f0").pack(pady=20)
-        
-        # Etiqueta y campo de entrada para el nombre de usuario
-        tk.Label(login_frame, text="Usuario:", font=("Arial", 12), bg="#f0f0f0").pack(pady=5)
-        self.entrada_usuario = tk.Entry(login_frame, font=("Arial", 12))
-        self.entrada_usuario.pack(pady=5)
-        
-        # Etiqueta y campo de entrada para la contraseña
-        tk.Label(login_frame, text="Contraseña:", font=("Arial", 12), bg="#f0f0f0").pack(pady=5)
-        self.entrada_contrasena = tk.Entry(login_frame, font=("Arial", 12), show="*")
-        self.entrada_contrasena.pack(pady=5)
-        
-        # Botón de inicio de sesión
-        tk.Button(login_frame, text="Iniciar Sesión", command=self.mostrar_horario, font=("Arial", 12), bg="#4a90e2", fg="white").pack(pady=20)
-    
-    def mostrar_horario(self):
-        # Aquí puedes agregar la lógica para mostrar el horario después de iniciar sesión
-        pass
+    def _init_(self):
+        self.root = tk.Tk()
+        self.root.title("Agenda Escolar")
+        self.root.geometry("900x700")
+        self.root.configure(bg="#F9F9F9")
 
-    # --- Ventanas de la Aplicación ---
+        self.fuente_titulo = ("Helvetica", 18, "bold")
+        self.fuente_texto = ("Helvetica", 12)
+
+        self.mostrar_login()
+        self.root.mainloop()
 
     def mostrar_menu_eventos(self, usuario):
         self.limpiar_ventana()
 
-        tk.Label(self.root, text=f"Bienvenido, {usuario}", font=("Arial", 18), bg="#F0F8FF").pack(pady=20)
+        tk.Label(self.root, text=f"Bienvenido, {usuario}", font=self.fuente_titulo, bg="#F9F9F9").pack(pady=20)
 
-        # Cambiamos los nombres de los botones y sus funciones
-        tk.Button(self.root, 
-                 text="Gestionar Horario y Deberes", 
-                 command=lambda: self.mostrar_horario(usuario), 
-                 bg="#ADD8E6",
-                 width=25,
-                 height=2).pack(pady=5)
-        
-        tk.Button(self.root, 
-                 text="Ver Deberes Pendientes", 
-                 command=lambda: self.mostrar_deberes(usuario), 
-                 bg="#ADD8E6",
-                 width=25,
-                 height=2).pack(pady=5)
-        
-        tk.Button(self.root, 
-                 text="Cerrar Sesión", 
-                 command=self.mostrar_login, 
-                 bg="#FFB6C1",
-                 width=25,
-                 height=2).pack(pady=10)
+        botones = [
+            ("Gestionar Horario y Deberes", lambda: self.mostrar_horario(usuario)),
+            ("Ver Deberes Pendientes", lambda: self.mostrar_deberes(usuario)),
+            ("Cerrar Sesión", self.mostrar_login)
+        ]
+
+        for texto, comando in botones:
+            tk.Button(self.root, text=texto, command=comando, bg="#4A90E2", fg="white",
+                      font=self.fuente_texto, width=30, height=2, relief="raised").pack(pady=10)
 
     def mostrar_horario(self, usuario):
         self.limpiar_ventana()
-        
-        # Título principal
-        tk.Label(self.root, text="Horario Escolar", 
-                font=("Arial", 18, "bold"), 
-                bg="#F0F8FF").pack(pady=10)
-        
-        # Frame para el horario
-        horario_frame = tk.Frame(self.root, bg="white")
+
+        tk.Label(self.root, text="Horario Escolar", font=self.fuente_titulo, bg="#F9F9F9").pack(pady=10)
+
+        horario_frame = tk.Frame(self.root, bg="white", relief="solid", bd=2)
         horario_frame.pack(expand=True, fill="both", padx=20, pady=10)
-        
-        # Días de la semana
+
         dias = ["Hora", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes"]
         for i, dia in enumerate(dias):
-            tk.Label(horario_frame, 
-                    text=dia,
-                    font=("Arial", 10, "bold"),
-                    bg="#4a90e2",
-                    fg="white",
-                    relief="raised",
-                    width=15,
-                    height=2).grid(row=0, column=i, sticky="nsew", padx=1, pady=1)
-        
-        # Horas y celdas para materias
+            tk.Label(horario_frame, text=dia, font=self.fuente_texto, bg="#4A90E2", fg="white",
+                     relief="raised", width=15, height=2).grid(row=0, column=i, sticky="nsew", padx=1, pady=1)
+
         self.celdas_materias = {}
         horas = ["7:00", "8:00", "9:00", "10:00", "11:00", "12:00"]
-        
+
         for i, hora in enumerate(horas, 1):
-            # Columna de hora
-            tk.Label(horario_frame,
-                    text=hora,
-                    font=("Arial", 10, "bold"),
-                    bg="#4a90e2",
-                    fg="white",
-                    relief="raised",
-                    width=15,
-                    height=2).grid(row=i, column=0, sticky="nsew", padx=1, pady=1)
-            
-            # Celdas editables para materias
+            tk.Label(horario_frame, text=hora, font=self.fuente_texto, bg="#4A90E2", fg="white",
+                     relief="raised", width=15, height=2).grid(row=i, column=0, sticky="nsew", padx=1, pady=1)
+
             for j in range(1, 6):
-                entry = tk.Entry(horario_frame,
-                               font=("Arial", 10),
-                               justify="center",
-                               relief="solid")
+                entry = tk.Entry(horario_frame, font=self.fuente_texto, justify="center", relief="solid")
                 entry.grid(row=i, column=j, sticky="nsew", padx=1, pady=1)
                 self.celdas_materias[(hora, j)] = entry
-        
-        # Configurar el grid
+
         for i in range(6):
             horario_frame.grid_columnconfigure(i, weight=1)
         for i in range(7):
             horario_frame.grid_rowconfigure(i, weight=1)
-        
-        # Frame para botones
-        botones_frame = tk.Frame(self.root, bg="#F0F8FF")
+
+        botones_frame = tk.Frame(self.root, bg="#F9F9F9")
         botones_frame.pack(pady=10)
-        
-        # Botones
-        tk.Button(botones_frame,
-                 text="Guardar Horario",
-                 command=lambda: self.guardar_horario(usuario),
-                 bg="#90EE90",
-                 width=15).pack(side=tk.LEFT, padx=5)
-        
-        tk.Button(botones_frame,
-                 text="Agregar Deber",
-                 command=lambda: self.agregar_deber(usuario),
-                 bg="#ADD8E6",
-                 width=15).pack(side=tk.LEFT, padx=5)
-        
-        tk.Button(botones_frame,
-                 text="Volver",
-                 command=lambda: self.mostrar_menu_eventos(usuario),
-                 bg="#FFB6C1",
-                 width=15).pack(side=tk.LEFT, padx=5)
-        
-        # Cargar horario guardado
+
+        botones = [
+            ("Guardar Horario", lambda: self.guardar_horario(usuario)),
+            ("Agregar Deber", lambda: self.agregar_deber(usuario)),
+            ("Volver", lambda: self.mostrar_menu_eventos(usuario))
+        ]
+
+        for texto, comando in botones:
+            tk.Button(botones_frame, text=texto, command=comando, bg="#4A90E2", fg="white",
+                      font=self.fuente_texto, width=20, height=2).pack(side=tk.LEFT, padx=10)
+
         horario_guardado = obtener_materias(usuario)
         for (hora, dia), entry in self.celdas_materias.items():
             dia_texto = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"][dia-1]
@@ -150,104 +83,66 @@ class AgendaApp:
 
     def mostrar_deberes(self, usuario):
         self.limpiar_ventana()
-        
-        # Título
-        tk.Label(self.root, text="Deberes Pendientes", 
-                font=("Arial", 18, "bold"), 
-                bg="#F0F8FF").pack(pady=10)
-        
-        # Frame para la lista de deberes
-        deberes_frame = tk.Frame(self.root, bg="white")
-        deberes_frame.pack(expand=True, fill="both", padx=20, pady=10)
-        
-        # Crear Treeview para mostrar los deberes
+
+        tk.Label(self.root, text="Deberes Pendientes", font=self.fuente_titulo, bg="#F9F9F9").pack(pady=10)
+
+        frame = tk.Frame(self.root, bg="white", relief="solid", bd=2)
+        frame.pack(expand=True, fill="both", padx=20, pady=10)
+
         columns = ("Materia", "Descripción", "Fecha de Entrega")
-        tree = ttk.Treeview(deberes_frame, columns=columns, show="headings")
-        
-        # Configurar las columnas
+        tree = ttk.Treeview(frame, columns=columns, show="headings")
+
         for col in columns:
             tree.heading(col, text=col)
-            tree.column(col, width=150)
-        
-        # Agregar scrollbar
-        scrollbar = ttk.Scrollbar(deberes_frame, orient="vertical", command=tree.yview)
+            tree.column(col, width=200, anchor="center")
+
+        scrollbar = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
         tree.configure(yscrollcommand=scrollbar.set)
         scrollbar.pack(side="right", fill="y")
-        
-        # Obtener y mostrar los deberes
+        tree.pack(expand=True, fill="both")
+
         deberes = obtener_deberes(usuario)
         for deber in deberes:
             tree.insert("", "end", values=deber)
-        
-        tree.pack(expand=True, fill="both")
-        
-        # Frame para botones
-        botones_frame = tk.Frame(self.root, bg="#F0F8FF")
+
+        botones_frame = tk.Frame(self.root, bg="#F9F9F9")
         botones_frame.pack(pady=10)
-        
-        # Botón para volver
-        tk.Button(botones_frame,
-                 text="Volver",
-                 command=lambda: self.mostrar_menu_eventos(usuario),
-                 bg="#FFB6C1",
-                 width=15).pack(side=tk.LEFT, padx=5)
-        
-        # Botón para actualizar
-        tk.Button(botones_frame,
-                 text="Actualizar",
-                 command=lambda: self.actualizar_deberes(usuario, tree),
-                 bg="#90EE90",
-                 width=15).pack(side=tk.LEFT, padx=5)
+
+        botones = [
+            ("Actualizar", lambda: self.actualizar_deberes(usuario, tree)),
+            ("Volver", lambda: self.mostrar_menu_eventos(usuario))
+        ]
+
+        for texto, comando in botones:
+            tk.Button(botones_frame, text=texto, command=comando, bg="#4A90E2", fg="white",
+                      font=self.fuente_texto, width=20, height=2).pack(side=tk.LEFT, padx=10)
 
     def actualizar_deberes(self, usuario, tree):
-        # Limpiar el árbol
         for item in tree.get_children():
             tree.delete(item)
-        
-        # Recargar los deberes
+
         deberes = obtener_deberes(usuario)
         for deber in deberes:
             tree.insert("", "end", values=deber)
 
     def agregar_deber(self, usuario):
-        # Crear ventana emergente
         ventana_deber = tk.Toplevel(self.root)
         ventana_deber.title("Agregar Deber")
-        ventana_deber.geometry("400x500")
-        ventana_deber.configure(bg="#F0F8FF")
+        ventana_deber.geometry("400x400")
+        ventana_deber.configure(bg="#F9F9F9")
 
-        # Frame principal
-        frame = tk.Frame(ventana_deber, bg="#F0F8FF")
-        frame.pack(padx=20, pady=20, fill="both", expand=True)
+        tk.Label(ventana_deber, text="Agregar Nuevo Deber", font=self.fuente_titulo, bg="#F9F9F9").pack(pady=10)
 
-        # Título
-        tk.Label(frame, 
-                text="Agregar Nuevo Deber", 
-                font=("Arial", 16, "bold"),
-                bg="#F0F8FF").pack(pady=10)
-
-        # Campo Materia
-        tk.Label(frame, 
-                text="Materia:", 
-                font=("Arial", 10, "bold"),
-                bg="#F0F8FF").pack(pady=(10,2))
-        materia_entry = tk.Entry(frame, width=40)
+        tk.Label(ventana_deber, text="Materia:", font=self.fuente_texto, bg="#F9F9F9").pack(pady=(10, 2))
+        materia_entry = tk.Entry(ventana_deber, width=40)
         materia_entry.pack()
 
-        # Campo Descripción
-        tk.Label(frame, 
-                text="Descripción:", 
-                font=("Arial", 10, "bold"),
-                bg="#F0F8FF").pack(pady=(10,2))
-        descripcion_text = tk.Text(frame, height=4, width=40)
+        tk.Label(ventana_deber, text="Descripción:", font=self.fuente_texto, bg="#F9F9F9").pack(pady=(10, 2))
+        descripcion_text = tk.Text(ventana_deber, height=4, width=40)
         descripcion_text.pack()
 
-        # Campo Fecha
-        tk.Label(frame, 
-                text="Fecha de Entrega (YYYY-MM-DD):", 
-                font=("Arial", 10, "bold"),
-                bg="#F0F8FF").pack(pady=(10,2))
-        fecha_entry = tk.Entry(frame, width=40)
+        tk.Label(ventana_deber, text="Fecha de Entrega (YYYY-MM-DD):", font=self.fuente_texto, bg="#F9F9F9").pack(pady=(10, 2))
+        fecha_entry = tk.Entry(ventana_deber, width=40)
         fecha_entry.insert(0, datetime.date.today().strftime('%Y-%m-%d'))
         fecha_entry.pack()
 
@@ -261,10 +156,8 @@ class AgendaApp:
                 return
 
             try:
-                # Validar formato de fecha
                 datetime.datetime.strptime(fecha, '%Y-%m-%d')
-                
-                # Intentar guardar el deber
+
                 if guardar_deber(usuario, materia, descripcion, fecha):
                     messagebox.showinfo("Éxito", "Deber guardado correctamente")
                     ventana_deber.destroy()
@@ -273,120 +166,75 @@ class AgendaApp:
             except ValueError:
                 messagebox.showerror("Error", "Formato de fecha incorrecto. Use YYYY-MM-DD")
 
-        # Frame para botones
-        botones_frame = tk.Frame(frame, bg="#F0F8FF")
+        botones_frame = tk.Frame(ventana_deber, bg="#F9F9F9")
         botones_frame.pack(pady=20)
 
-        # Botón Guardar
-        tk.Button(botones_frame,
-                 text="Guardar Deber",
-                 command=guardar_y_cerrar,
-                 bg="#90EE90",
-                 width=15,
-                 height=2).pack(side=tk.LEFT, padx=5)
+        tk.Button(botones_frame, text="Guardar", command=guardar_y_cerrar, bg="#4A90E2", fg="white",
+                  font=self.fuente_texto, width=15).pack(side=tk.LEFT, padx=5)
+        tk.Button(botones_frame, text="Cancelar", command=ventana_deber.destroy, bg="#FF5C5C", fg="white",
+                  font=self.fuente_texto, width=15).pack(side=tk.LEFT, padx=5)
 
-        # Botón Cancelar
-        tk.Button(botones_frame,
-                 text="Cancelar",
-                 command=ventana_deber.destroy,
-                 bg="#FFB6C1",
-                 width=15,
-                 height=2).pack(side=tk.LEFT, padx=5)
-
-        # Hacer la ventana modal
         ventana_deber.transient(self.root)
         ventana_deber.grab_set()
         ventana_deber.focus_set()
 
     def guardar_horario(self, usuario):
-        try:
-            horario = {}
-            print("\n=== INICIO GUARDADO DE HORARIO ===")
-            print(f"Usuario actual: {usuario}")
-            
-            for (hora, dia), entry in self.celdas_materias.items():
-                materia = entry.get().strip()
-                if materia:
-                    dia_texto = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"][dia-1]
-                    clave = f"{hora}-{dia_texto}"
-                    horario[clave] = materia
-                    print(f"Agregando al horario: {clave} = {materia}")
-            
-            if not horario:
-                print("No hay materias para guardar")
-                messagebox.showwarning("Advertencia", "No hay materias para guardar en el horario")
-                return
-            
-            print(f"Total de materias a guardar: {len(horario)}")
-            resultado = guardar_materias(usuario, horario)
-            print(f"Resultado del guardado: {resultado}")
-            
-            if resultado:
-                messagebox.showinfo("Éxito", "Horario guardado correctamente")
-            else:
-                messagebox.showerror("Error", 
-                                   "No se pudo guardar el horario.\n" +
-                                   "Por favor, revisa la consola para más detalles y\n" +
-                                   "contacta al soporte técnico si el problema persiste.")
-        
-        except Exception as e:
-            print(f"Error inesperado: {type(e).__name__}")
-            print(f"Descripción: {str(e)}")
-            messagebox.showerror("Error", f"Error inesperado al guardar: {str(e)}")
+        horario = {}
+        for (hora, dia), entry in self.celdas_materias.items():
+            materia = entry.get().strip()
+            if materia:
+                dia_texto = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"][dia-1]
+                clave = f"{hora}-{dia_texto}"
+                horario[clave] = materia
 
-    # --- Ventana de Inicio de Sesión ---
+        if not horario:
+            messagebox.showwarning("Advertencia", "No hay materias para guardar en el horario")
+            return
+
+        if guardar_materias(usuario, horario):
+            messagebox.showinfo("Éxito", "Horario guardado correctamente")
+        else:
+            messagebox.showerror("Error", "No se pudo guardar el horario")
+
     def mostrar_login(self):
         self.limpiar_ventana()
 
-        tk.Label(self.root, text="Iniciar Sesión", font=("Arial", 18), bg="#F0F8FF").pack(pady=20)
+        frame_login = tk.Frame(self.root, bg="white", bd=2, relief="solid")
+        frame_login.place(relx=0.5, rely=0.5, anchor="center", width=400, height=400)
 
-        tk.Label(self.root, text="Usuario:", bg="#F0F8FF").pack()
-        self.usuario_entry = tk.Entry(self.root)
-        self.usuario_entry.pack()
+        tk.Label(frame_login, text="Bienvenido", font=("Helvetica", 20, "bold"), bg="white", fg="#333333").pack(pady=20)
 
-        tk.Label(self.root, text="Contraseña:", bg="#F0F8FF").pack()
-        self.contrasena_entry = tk.Entry(self.root, show="*")
-        self.contrasena_entry.pack()
+        tk.Label(frame_login, text="Usuario:", font=self.fuente_texto, bg="white", fg="#666666").pack(anchor="w", padx=40, pady=(10, 0))
+        self.usuario_entry = ttk.Entry(frame_login, font=self.fuente_texto)
+        self.usuario_entry.pack(fill="x", padx=40, pady=5)
 
-        tk.Button(self.root, text="Iniciar Sesión", command=self.iniciar_sesion, bg="#ADD8E6").pack(pady=10)
-        tk.Button(self.root, text="Registrar Usuario", command=self.mostrar_registro, bg="#90EE90").pack()
+        tk.Label(frame_login, text="Contraseña:", font=self.fuente_texto, bg="white", fg="#666666").pack(anchor="w", padx=40, pady=(10, 0))
+        self.contrasena_entry = ttk.Entry(frame_login, font=self.fuente_texto, show="*")
+        self.contrasena_entry.pack(fill="x", padx=40, pady=5)
 
-    # --- Ventana de Registro ---
+        boton_login = tk.Button(frame_login, text="Iniciar Sesión", command=self.iniciar_sesion, font=self.fuente_texto, bg="#4CAF50", fg="white", relief="flat", cursor="hand2")
+        boton_login.pack(pady=20, ipadx=10, ipady=5)
+
+        link_registro = tk.Label(frame_login, text="¿No tienes cuenta? Regístrate aquí", font=("Helvetica", 10, "underline"), bg="white", fg="#0066CC", cursor="hand2")
+        link_registro.pack(pady=(10, 0))
+        link_registro.bind("<Button-1>", lambda e: self.mostrar_registro())
+
     def mostrar_registro(self):
         self.limpiar_ventana()
 
-        tk.Label(self.root, text="Registrar Usuario", font=("Arial", 18), bg="#F0F8FF").pack(pady=20)
+        tk.Label(self.root, text="Registrar Usuario", font=self.fuente_titulo, bg="#F9F9F9").pack(pady=20)
 
-        tk.Label(self.root, text="Nuevo Usuario:", bg="#F0F8FF").pack()
-        self.nuevo_usuario_entry = tk.Entry(self.root)
-        self.nuevo_usuario_entry.pack()
+        tk.Label(self.root, text="Nuevo Usuario:", font=self.fuente_texto, bg="#F9F9F9").pack()
+        self.nuevo_usuario_entry = tk.Entry(self.root, font=self.fuente_texto)
+        self.nuevo_usuario_entry.pack(pady=5)
 
-        tk.Label(self.root, text="Contraseña:", bg="#F0F8FF").pack()
-        self.nueva_contrasena_entry = tk.Entry(self.root, show="*")
-        self.nueva_contrasena_entry.pack()
+        tk.Label(self.root, text="Contraseña:", font=self.fuente_texto, bg="#F9F9F9").pack()
+        self.nueva_contrasena_entry = tk.Entry(self.root, font=self.fuente_texto, show="*")
+        self.nueva_contrasena_entry.pack(pady=5)
 
-        tk.Button(self.root, text="Registrar", command=self.registrar_usuario, bg="#90EE90").pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.mostrar_login, bg="#FFB6C1").pack()
+        tk.Button(self.root, text="Registrar", command=self.registrar_usuario, bg="#4CAF50", fg="white", font=self.fuente_texto, width=20, height=2).pack(pady=10)
+        tk.Button(self.root, text="Volver", command=self.mostrar_login, bg="#FF5C5C", fg="white", font=self.fuente_texto, width=20, height=2).pack()
 
-    # --- Ventana para Ver Eventos ---
-    def mostrar_eventos(self, usuario):
-        self.limpiar_ventana()
-
-        tk.Label(self.root, text="Tus Eventos", font=("Arial", 18), bg="#F0F8FF").pack(pady=20)
-
-        eventos = obtener_eventos(usuario)
-        if not eventos:
-            tk.Label(self.root, text="No hay eventos programados.", bg="#F0F8FF").pack()
-        else:
-            for evento, dia in eventos:
-                tk.Label(self.root, text=f"{dia}: {evento}", bg="#F0F8FF").pack()
-
-        tk.Button(self.root, text="Volver", command=lambda: self.mostrar_menu_eventos(usuario), bg="#FFB6C1").pack(pady=10)
-
-        # Simular notificación
-        self.notificar_eventos(eventos)
-
-    # --- Funciones de Manejo ---
     def iniciar_sesion(self):
         usuario = self.usuario_entry.get()
         contrasena = self.contrasena_entry.get()
@@ -404,29 +252,9 @@ class AgendaApp:
         else:
             messagebox.showerror("Error", "El usuario ya existe.")
 
-    def guardar_evento(self, usuario):
-        evento = self.evento_entry.get()
-        fecha = self.calendario.get_date()
-        if evento and fecha:
-            agregar_evento(usuario, evento, fecha)
-            messagebox.showinfo("Éxito", "Evento guardado correctamente.")
-            self.mostrar_menu_eventos(usuario)
-        else:
-            messagebox.showerror("Error", "Completa todos los campos.")
-
-    def notificar_eventos(self, eventos):
-        hoy = datetime.date.today().strftime("%Y-%m-%d")
-        for evento, fecha in eventos:
-            if fecha == hoy:
-                messagebox.showinfo("Notificación", f"Tienes un evento hoy: {evento}")
-
     def limpiar_ventana(self):
         for widget in self.root.winfo_children():
             widget.destroy()
 
-
-# Ejecutar la aplicación
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = AgendaApp(root)
-    root.mainloop()
+    AgendaApp()
